@@ -1,0 +1,6 @@
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\bin\Debug\Mahjong.exe
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\bin\Debug\Mahjong.pdb
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\obj\Debug\Mahjong.csprojAssemblyReference.cache
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\obj\Debug\Mahjong.csproj.CoreCompileInputs.cache
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\obj\Debug\Mahjong.exe
+C:\Users\bobca\RiderProjects\Mahjong\Mahjong\obj\Debug\Mahjong.pdb
