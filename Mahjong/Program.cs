@@ -7,115 +7,57 @@ namespace Mahjong
 {
     internal class Program
     {
-        //条、筒、万 1，2，3
-        //风和箭 4
-        //num 数字 1-9 代表对应牌
-        //type 为 4 时 num 的值 1-7 分别代表：东南西北中发白
-
-        struct Card
+        private struct Card
         {
-            public int type;
-            public int num;
-
-            public Card(int type, int num)
-            {
-                this.type = type;
-                this.num = num;
-            }
-
-
-            public void PrintCardValue()
-            {
-                string type = "";
-                bool type4 = false;
-                switch (this.type)
-                {
-                    case 1:
-                        type = "条";
-                        break;
-                    case 2:
-                        type = "筒";
-                        break;
-                    case 3:
-                        type = "万";
-                        break;
-                    case 4:
-                        type = "";
-                        type4 = true;
-                        break;
-                }
-
-                string num = "";
-
-                if (type4)
-                {
-                    switch (this.num)
-                    {
-                        case 1:
-                            num = "东";
-                            break;
-                        case 2:
-                            num = "西";
-                            break;
-                        case 3:
-                            num = "南";
-                            break;
-                        case 4:
-                            num = "北";
-                            break;
-                        case 5:
-                            num = "中";
-                            break;
-                        case 6:
-                            num = "发";
-                            break;
-                    }
-                }
-                else
-                {
-                    num = this.num.ToString();
-                }
-//
-//                Console.WriteLine(num);
-//                Console.WriteLine(type);
-            }
+            /// <summary>
+            /// 条、筒、万、风：1，2，3，4
+            /// </summary>
+            public int Type;
+            /// <summary>
+            /// 牌面具体数值
+            /// 当类型为风（4）时 1-7 分别代表：东南西北中发白
+            /// </summary>
+            public int Num;
         }
 
         // Use this for initialization
-        void Start()
+        private void Start()
         {
-            List<Card> initCards = GenerateList(new int[] {34,33,42,42,42,43,43,43,44,44,44,35,35,35 });
-            if (MaJangIsOver(initCards))
-            {
-                Console.WriteLine("Win");
-            }
-            else
-            {
-                Console.WriteLine("Can not Win");
-            }
+            List<Card> initCards = GenerateList(new[] {33, 33, 33, 24, 24, 24, 34, 34, 34, 44, 44, 53, 53, 53,53});
+            Console.WriteLine(MaJangIsOver(initCards) ? "Win" : "Can not Win");
         }
 
-        List<Card> GenerateList(int[] cardGenerator)
+
+        /// <summary>
+        /// 通过数组生成牌序列
+        /// </summary>
+        /// <param name="cardGenerator"></param>
+        /// <returns></returns>
+        static List<Card> GenerateList(int[] cardGenerator)
         {
-            List<Card> cards = new List<Card>();
-            for (int i = 0; i < cardGenerator.Length; i++)
+            var cards = new List<Card>();
+            foreach (var t in cardGenerator)
             {
-                int type = cardGenerator[i].ToString()[0];
-                int num = cardGenerator[i].ToString()[1];
-                Card c = new Card();
-                c.type = type;
-                c.num = num;
+                int type = t.ToString()[1];
+                int num = t.ToString()[0];
+                
+                var c = new Card
+                {
+                    Type = type, 
+                    Num = num
+                };
+                
                 cards.Add(c);
             }
-
-            foreach (Card ca in cards)
-            {
-                ca.PrintCardValue();
-            }
-
+            
             return cards;
         }
 
+        /// <summary>
+        /// 判胡
+        /// </summary>
+        /// <param name="originalCards"></param>
+        /// <returns></returns>
         bool MaJangIsOver(List<Card> originalCards)
         {
             if (originalCards.Count < 14)
@@ -146,8 +88,8 @@ namespace Mahjong
                     if (IsSameCard(originalCards[i], originalCards[j]))
                     {
                         Card newCard = new Card();
-                        newCard.num = originalCards[j].num;
-                        newCard.type = originalCards[j].type;
+                        newCard.Num = originalCards[j].Num;
+                        newCard.Type = originalCards[j].Type;
                         whoHaveBothCard.Add(newCard);
                         break;
                     }
@@ -205,8 +147,8 @@ namespace Mahjong
                 }
 
                 //判别
-                List<Card> lastCards = RemoveAllThree(allCards);
-                if (lastCards.Count <= 0)
+                int listCount = RemoveAllThree(allCards);
+                if (listCount == 0)
                 {
                     return true;
                 }
@@ -216,17 +158,77 @@ namespace Mahjong
         }
 
 
-        //递归去掉所有顺子和对子
-        List<Card> RemoveAllThree(List<Card> cards)
+        /// <summary>
+        /// 去除所有顺子、对子、杠
+        /// </summary>
+        /// <param name="cards"></param>
+        /// <returns></returns>
+        int RemoveAllThree(List<Card> cards)
         {
-            cards = RemoveAllStraight(cards);
-            cards = RemoveAllPair(cards);
-            return cards;
+            List<Card> project = new List<Card>();
+            int minCount = 100;
+
+            for (int i = 0; i < 6; i++)
+            {
+                project.Clear();
+                
+                foreach (var v in cards)
+                {
+                    project.Add(v);
+                }
+                
+                switch (i)
+                {
+                    case 0:
+                        project = RemoveAllExposed(project);
+                        project = RemoveAllPair(project);
+                        project = RemoveAllStraight(project);
+                        break;
+                    case 1:
+                        project = RemoveAllExposed(project);
+                        project = RemoveAllStraight(project);
+                        project = RemoveAllPair(project);
+                        break;
+                    case 2:
+                        project = RemoveAllPair(project);
+                        project = RemoveAllExposed(project);
+                        project = RemoveAllStraight(project);
+                        break;
+                    case 3:
+                        project = RemoveAllPair(project);
+                        project = RemoveAllStraight(project);
+                        project = RemoveAllExposed(project);
+                        break;
+                    case 4:
+                        project = RemoveAllStraight(project);
+                        project = RemoveAllExposed(project);
+                        project = RemoveAllPair(project);
+                        break;
+                    case 5:
+                        project = RemoveAllStraight(project);
+                        project = RemoveAllPair(project);
+                        project = RemoveAllExposed(project);
+                        break;
+                }
+
+                minCount = Math.Min(project.Count, minCount);
+                if (minCount == 0)
+                {
+                    return minCount;
+                }
+            }
+
+
+            return minCount;
         }
 
 
-        //移除顺子
-        List<Card> RemoveAllStraight(List<Card> cards)
+        /// <summary>
+        /// 移除顺子
+        /// </summary>
+        /// <param name="cards"></param>
+        /// <returns></returns>
+        static List<Card> RemoveAllStraight(List<Card> cards)
         {
             //移除所有顺子
             for (int i = 0; i < cards.Count; i++)
@@ -253,8 +255,51 @@ namespace Mahjong
             return cards;
         }
 
-        List<Card> RemoveAllPair(List<Card> cards)
+        /// <summary>
+        /// 移除所有杠
+        /// </summary>
+        /// <param name="cards"></param>
+        /// <returns></returns>
+        private List<Card> RemoveAllExposed(List<Card> cards)
         {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                for (int j = 0; j < cards.Count; j++)
+                {
+                    if (i == j)
+                        continue;
+                    for (int k = 0; k < cards.Count; k++)
+                    {
+                        if (k == i || k == j)
+                            continue;
+                        for (int l = 0; l < cards.Count; l++)
+                        {
+                            if (l == k || l == i || l == j)
+                                continue;
+                            if (IsSameFour(cards[i], cards[j], cards[k], cards[l]))
+                            {
+                                cards.RemoveAt(i);
+                                cards.RemoveAt(j - 1);
+                                cards.RemoveAt(k - 2);
+                                cards.RemoveAt(l - 3);
+                                RemoveAllExposed(cards);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return cards;
+        }
+
+        /// <summary>
+        /// 移除所有对子
+        /// </summary>
+        /// <param name="cards"></param>
+        /// <returns></returns>
+        private List<Card> RemoveAllPair(List<Card> cards)
+        {
+            if (cards == null) throw new ArgumentNullException(nameof(cards));
             for (int i = 0; i < cards.Count; i++)
             {
                 for (int j = 0; j < cards.Count; j++)
@@ -287,27 +332,41 @@ namespace Mahjong
         /// <param name="c2"></param>
         /// <param name="c3"></param>
         /// <returns></returns>
-        bool IsNeighbor(Card c1, Card c2, Card c3)
+        static bool IsNeighbor(Card c1, Card c2, Card c3)
         {
             //风不能有顺子
-            if (c1.type == 4 || c2.type == 4 || c3.type == 4)
+            if (c1.Type == 4 || c2.Type == 4 || c3.Type == 4)
             {
                 return false;
             }
 
             //不同类型不能有顺子
-            if (!(c1.type == c2.type && c1.type == c3.type))
+            if (!(c1.Type == c2.Type && c1.Type == c3.Type))
             {
                 return false;
             }
 
             //三个数字不能相同
-            if (!(c1.num != c2.num && c1.num != c3.num))
+            if (!(c1.Num != c2.Num && c1.Num != c3.Num))
             {
                 return false;
             }
 
-            return Math.Min(c1.num, Math.Min(c2.num, c3.num)) + 2 == Math.Max(c1.num, Math.Max(c2.num, c3.num));
+            return Math.Min(c1.Num, Math.Min(c2.Num, c3.Num)) + 2 == Math.Max(c1.Num, Math.Max(c2.Num, c3.Num));
+        }
+
+        /// <summary>
+        /// 判断是否是杠
+        /// </summary>
+        /// <returns></returns>
+        static bool IsSameFour(Card c1, Card c2, Card c3, Card c4)
+        {
+            if (IsSameCard(c1, c2) && IsSameCard(c2, c3) && IsSameCard(c3, c4))
+            {
+                return true;
+            }
+
+            return false;
         }
 
 
@@ -318,7 +377,7 @@ namespace Mahjong
         /// <param name="c2"></param>
         /// <param name="c3"></param>
         /// <returns></returns>
-        bool IsSameThree(Card c1, Card c2, Card c3)
+        static bool IsSameThree(Card c1, Card c2, Card c3)
         {
             if (IsSameCard(c1, c2) && IsSameCard(c2, c3))
                 return true;
@@ -331,16 +390,23 @@ namespace Mahjong
         /// <param name="c1"></param>
         /// <param name="c2"></param>
         /// <returns></returns>
-        bool IsSameCard(Card c1, Card c2)
+        static bool IsSameCard(Card c1, Card c2)
         {
-            return c1.type == c2.type && c1.num == c2.num;
+            return c1.Type == c2.Type && c1.Num == c2.Num;
         }
 
+
+        /// <summary>
+        /// 指定 List 中是否含有某张牌
+        /// </summary>
+        /// <param name="c"></param>
+        /// <param name="cards"></param>
+        /// <returns></returns>
         bool HaveThisCardInList(Card c, List<Card> cards)
         {
-            for (int i = 0; i < cards.Count; i++)
+            foreach (var t in cards)
             {
-                if (IsSameCard(c, cards[i]))
+                if (IsSameCard(c, t))
                 {
                     return true;
                 }
@@ -351,7 +417,11 @@ namespace Mahjong
 
         public static void Main(string[] args)
         {
+            var sp=new Stopwatch();
+            sp.Start();
             new Program().Start();
+            sp.Stop();
+            Console.WriteLine($"total running time : {sp.Elapsed.TotalSeconds}");
         }
     }
 }
